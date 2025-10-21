@@ -1,677 +1,1070 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Automation Offline Tool</title>
-    <!-- redeploy -->
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            font-size: 10px;
-        }
-        .form-title {
-            text-align: center;
-            font-weight: bold;
-            font-size: 2em;
-            margin-bottom: 1em;
-            color: #333333;
-        }
-        .container {
-            display: flex;
-            flex-wrap: nowrap;
-            gap: 20px;
-        }
-        .form-container {
-            display: flex;
-            flex-direction: column;
-            width: 20%;
-        }
-        .form-columns {
-            display: flex;
-            justify-content: Left;
-        }
-        .form-column {
-            width: 90%;
-        }
-        .table-container {
-            width: 80%;
-            overflow-x: auto;
-        }
-        form {
-            padding: 1em;
-            border: 2px solid #ccc;
-            border-radius: 2em;
-        }
-        div + div {
-            margin-top: 1em;
-        }
-        label {
-            display: block;
-            margin-bottom: .5em;
-            color: #333333;
-        }
-        input, textarea, select {
-            width: 60%;
-            padding: .5em;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        input[readonly] {
-            background-color: #f0f0f0;
-        }
-        button {
-            padding: 0.7em;
-            color: #fff;
-            background-color: #007BFF;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        table, th, td {
-            border: 1px solid #ccc;
-        }
-        th, td {
-            padding: 0.5em;
-            text-align: left;
-        }
-        .settings {
-            margin-top: 2em;
-            border-top: 1px solid #ccc;
-            padding-top: 1em;
-        }
-        .hidden {
-            display: none;
-        }
-        .delete-btn {
-            cursor: pointer;
-            color: red;
-            font-weight: bold;
-        }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Automation Offline Tool</title>
+<!-- redeploy -->
+<style>
+  /* Base */
+  body { font-family: Arial, sans-serif; margin: 20px; font-size: 10px; }
+  .form-title { text-align:center; font-weight:700; font-size:2em; margin-bottom:1em; color:#333 }
+  .container { display:flex; flex-wrap:nowrap; gap:20px; }
+  .form-container { display:flex; flex-direction:column; width:20%; }
+  .form-columns { display:flex; justify-content:Left; }
+  .form-column { width:90%; }
+  .table-container { width:80%; overflow-x:auto; position:relative; }
+  form { padding:1em; border:2px solid #ccc; border-radius:2em; }
+  div + div { margin-top:1em; }
+  label { display:block; margin-bottom:.5em; color:#333 }
+  input, textarea, select { width:60%; padding:.5em; border:1px solid #ccc; border-radius:4px; }
+  input[readonly]{ background:#f0f0f0; }
+  button { padding:.7em; color:#fff; background:#007BFF; border:none; border-radius:4px; cursor:pointer; }
+  button:hover { background:#0056b3; }
+  table { width:100%; border-collapse:collapse; }
+  table, th, td { border:1px solid #ccc; }
+  th, td { padding:.5em; text-align:left; }
 
-        .table-container {
-            position: relative;
-        }
+  .hidden { display:none !important; }
+  .muted { color:#666; font-style:italic; }
+  .inline { display:inline-block; }
+  .action-btn { cursor:pointer; font-weight:bold; user-select:none; }
+  .delete-btn { color:red; }
+  .edit-btn { color:#007BFF; margin-right:.5em; }
 
-        .export-btn-container {
-            text-align: right;
-            margin-top: 10px;
-        }
+  /* Login */
+  #loginForm { display:flex; flex-direction:column; width:300px; margin:0 auto; border:2px solid #ccc; border-radius:10px; padding:20px; }
+  #loginForm input { margin-bottom:10px; }
 
-        .export-btn {
-            padding: 0.7em;
-            color: #fff;
-            background-color: #007BFF;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
+  /* Radio groups */
+  .radio-group { display:flex; align-items:center; gap:1em; }
+  .radio-label { display:flex; align-items:center; gap:.5em; white-space:nowrap; height:1.5em; }
 
-        .export-btn:hover {
-            background-color: #0056b3;
-        }
-        .radio-group {
-            display: flex;
-            align-items: center;
-            gap: 1em;
-        }
-
-        .radio-label {
-            display: flex;
-            align-items: center;
-            gap: 0.5em;
-            white-space: nowrap;
-            height: 1.5em;
-        }
-
-        .radio-label input {
-            margin: 0;
-            vertical-align: middle;
-        }
-
-        .radio-label label {
-            margin: 0;
-            vertical-align: middle;
-        }
-
-        /* Styles for the login form */
-        #loginForm {
-            display: flex;
-            flex-direction: column;
-            width: 300px;
-            margin: 0 auto;
-            border: 2px solid #ccc;
-            border-radius: 10px;
-            padding: 20px;
-        }
-        #loginForm input {
-            margin-bottom: 10px;
-        }
-    </style>
+  /* Configure modal */
+  .modal-overlay { position: fixed; inset:0; background: rgba(0,0,0,.35);
+    display:flex; align-items:center; justify-content:center; z-index:9999; }
+  .modal-overlay.hidden { display:none !important; }
+  .modal-card { background:#fff; border-radius:12px; padding:16px; width:min(900px,92vw); border:1px solid #ccc; }
+  .modal-grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px; }
+  .modal-grid textarea { width:100%; min-height:90px; resize:vertical; }
+</style>
 </head>
 <body>
 
+<!-- LOGIN -->
 <div id="loginScreen">
-    <form id="loginForm">
-        <h2>Login</h2>
-        <label for="username">Username</label>
-        <input type="text" id="username" name="username" required>
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" required>
-        <button type="button" onclick="login()">Login</button>
-    </form>
+  <form id="loginForm">
+    <h2>Login</h2>
+    <label for="username">Username</label>
+    <input type="text" id="username" name="username" required autocomplete="username" />
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password" required autocomplete="current-password"/>
+    <button type="button" onclick="login()">Login</button>
+  </form>
 </div>
 
+<!-- APP -->
 <div id="mainContent" style="display:none;">
-    <h1 class="form-title">Automation Production Offline Tool</h1>
-    <div class="container">
-        <div class="form-container">
-            <div class="form-columns">
-                <div class="form-column">
-                    <form id="mainForm">
-                        <div>
-                            <label for="role">Role</label>
-                            <select id="role" name="role" required>
-                                <option value="" selected></option>
-                                <option value="Cloner">Cloner</option>
-                                <option value="Cutter">Cutter</option>
-                                <option value="Trimmer">Trimmer</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="cutDate">Cut Date</label>
-                            <input type="date" id="cutDate" name="cutDate" required>
-                        </div>
-                        <div>
-                            <label for="trimDate">Trim Date</label>
-                            <input type="date" id="trimDate" name="trimDate" required>
-                        </div>
-                        <div>
-                            <label for="submittedBy">Submitted by</label>				
-                            <select id="submittedBy" name="submittedBy" required>
-                                <option value="" selected></option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="strain">Strain</label>			
-                            <select id="strain" name="strain" required>
-                                <option value="" selected></option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="pheno">Pheno</label>
-                            <input type="text" id="pheno" name="pheno" required>
-                        </div>
-                        <div>
-                            <label for="cutLocation">Cut Location</label>
-                            <input type="text" id="cutLocation" name="cutLocation" required>
-                        </div>
-                        <div>
-                            <label>What are they for?</label>
-                            <div class="radio-group">
-                                <div class="radio-label">
-                                    <input type="radio" id="production" name="purpose" value="Production" required>
-                                    <label for="production">Production</label>
-                                </div>
-                                <div class="radio-label">
-                                    <input type="radio" id="reprops" name="purpose" value="Reprops" required>
-                                    <label for="reprops">Reprops</label>
-                                </div>
-                                <div class="radio-label">
-                                    <input type="radio" id="madcoTransfer" name="purpose" value="MadCo Transfer" required>
-                                    <label for="madcoTransfer">MadCo Transfer</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div>
-                            <label for="momId">Mom ID</label>
-                            <input type="text" id="momId" name="momId" required>
-                        </div>
-                        <div>
-                            <label for="shift">What Shift?</label>
-                            <select id="shift" name="shift" required>
-                                <option value="" selected></option>
-                                <option value="1st Shift">1st Shift</option>
-                                <option value="2nd Shift">2nd Shift</option>
-                                <option value="3rd Shift">3rd Shift</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="stuckBy">Stuck by</label>
-                            <select id="stuckBy" name="stuckBy" required>
-                                <option value="" selected></option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="cutBy">Cut by</label>
-                            <select id="cutBy" name="cutBy" required>
-                                <option value="" selected></option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="trimmedBy">Trimmed by</label>
-                            <select id="trimmedBy" name="trimmedBy" required>
-                                <option value="" selected></option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="propRoomLocation">Prop Room Location</label>
-                            <input type="text" id="propRoomLocation" name="propRoomLocation" required>
-                        </div>
-                        <div>
-                            <label for="domeRatio">Dome Ratio</label>
-                            <div class="radio-group">
-                                <div class="radio-label">
-                                    <input type="radio" id="domeRatio39" name="domeRatio" value="39" checked>
-                                    <label for="domeRatio39">39</label>
-                                </div>
-                                <div class="radio-label">
-                                    <input type="radio" id="domeRatio48" name="domeRatio" value="48">
-                                    <label for="domeRatio48">48</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div>
-                            <label for="domes">Domes</label>
-                            <input type="text" id="domes" name="domes" required>
-                        </div>
-                        <div>
-                            <label for="pitchers">Pitchers</label>
-                            <input type="text" id="pitchers" name="pitchers" required>
-                        </div>
-                        <div>
-                            <label for="partial">Partial</label>
-                            <input type="text" id="partial" name="partial" oninput="showNextPartial('partial')">
-                        </div>
-                        <div id="partial2Container" class="hidden">
-                            <label for="partial2">Partial 2</label>
-                            <input type="text" id="partial2" name="partial2" oninput="showNextPartial('partial2')">
-                        </div>
-                        <div id="partial3Container" class="hidden">
-                            <label for="partial3">Partial 3</label>
-                            <input type="text" id="partial3" name="partial3" oninput="showNextPartial('partial3')">
-                        </div>
-                        <div id="partial4Container" class="hidden">
-                            <label for="partial4">Partial 4</label>
-                            <input type="text" id="partial4" name="partial4" oninput="showNextPartial('partial4')">
-                        </div>
-                        <div id="partial5Container" class="hidden">
-                            <label for="partial5">Partial 5</label>
-                            <input type="text" id="partial5" name="partial5">
-                        </div>
-                        <div>
-                            <label for="notes">Notes</label>
-                            <textarea id="notes" name="notes"></textarea>
-                        </div>
-                        <div>
-                            <button type="button" onclick="addToTable()">Submit</button>
-                        </div>
-                    </form>
+  <h1 class="form-title">Automation Production Offline Tool</h1>
+
+  <!-- Controls -->
+  <div style="display:flex; justify-content:flex-end; gap:8px; margin:-10px 0 10px;">
+    <button type="button" onclick="openConfig()">Configure</button>
+    <button type="button" onclick="logout()">Logout</button>
+  </div>
+
+  <div class="container">
+    <div class="form-container">
+      <div class="form-columns">
+        <div class="form-column">
+          <form id="mainForm" onsubmit="event.preventDefault(); submitForm();">
+            <!-- track which table row is being edited (-1 = new) -->
+            <input type="hidden" id="editingRowIndex" value="-1">
+
+            <!-- Hidden Common Date (auto-filled) -->
+            <input type="hidden" id="commonDate" name="commonDate">
+
+            <div>
+              <label for="role">Role</label>
+              <select id="role" name="role" required>
+                <option value="" selected></option>
+                <option value="Cloner">Cloner</option>
+                <option value="Cutter">Cutter</option>
+                <option value="Trimmer">Trimmer</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="cutDate">Cut date</label>
+              <input type="date" id="cutDate" name="cutDate" required>
+            </div>
+
+            <div>
+              <label for="trimDate">Trim Date</label>
+              <input type="date" id="trimDate" name="trimDate" required>
+            </div>
+
+            <div>
+              <label for="submittedBy">Submitted by:</label>
+              <select id="submittedBy" name="submittedBy" required>
+                <option value="" selected></option>
+              </select>
+            </div>
+
+            <div>
+              <label for="strain">Strain</label>
+              <select id="strain" name="strain" required>
+                <option value="" selected></option>
+              </select>
+            </div>
+
+            <div>
+              <label for="pheno">Pheno</label>
+              <select id="pheno" name="pheno" required>
+                <option value="" selected></option>
+              </select>
+            </div>
+
+            <div>
+              <label for="type">Type</label>
+              <select id="type" name="type">
+                <option value="" selected></option>
+              </select>
+            </div>
+
+            <div>
+              <label for="cutLocation">Cut Location</label>
+              <select id="cutLocation" name="cutLocation" required>
+                <option value="" selected></option>
+              </select>
+            </div>
+
+            <div>
+              <label>What are they for?</label>
+              <div class="radio-group" role="radiogroup" aria-label="Purpose">
+                <div class="radio-label">
+                  <input type="radio" id="production" name="purpose" value="Production" required>
+                  <label for="production">Production</label>
                 </div>
+                <div class="radio-label">
+                  <input type="radio" id="reprops" name="purpose" value="Reprops" required>
+                  <label for="reprops">Reprops</label>
+                </div>
+                <div class="radio-label">
+                  <input type="radio" id="madcoTransfer" name="purpose" value="MadCo Transfer" required>
+                  <label for="madcoTransfer">MadCo Transfer</label>
+                </div>
+              </div>
             </div>
-        </div>
-        <div class="table-container">
-            <table id="dataTable">
-                <thead>
-                    <tr>
-                        <th>Action</th>
-                        <th>Role</th>
-                        <th>Cut Date</th>
-                        <th>Trim Date</th>
-                        <th>Submitted by</th>
-                        <th>Strain</th>
-                        <th>Pheno</th>
-                        <th>Cut Location</th>
-                        <th>Purpose</th>
-                        <th>Mom ID</th>
-                        <th>Shift</th>
-                        <th>Stuck by</th>
-                        <th>Cut by</th>
-                        <th>Trimmed by</th>
-                        <th>Prop Room Location</th>
-                        <th>Domes</th>
-                        <th>Dome Ratio</th>
-                        <th>Pitchers</th>
-                        <th>Partial</th>
-                        <th>Partial 2</th>
-                        <th>Partial 3</th>
-                        <th>Partial 4</th>
-                        <th>Partial 5</th>
-                        <th>Notes</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Data will be inserted here -->
-                </tbody>
-            </table>
-            <div class="export-btn-container">
-                <button type="button" onclick="exportToCSV()">Export to Excel</button>
+
+            <div>
+              <label for="momId">Mom ID?</label>
+              <input type="text" id="momId" name="momId" required>
             </div>
+
+            <div>
+              <label for="shift">What Shift?</label>
+              <select id="shift" name="shift" required>
+                <option value="" selected></option>
+                <option value="1st Shift">1st Shift</option>
+                <option value="2nd Shift">2nd Shift</option>
+                <option value="3rd Shift">3rd Shift</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="stuckBy">Stuck by:</label>
+              <select id="stuckBy" name="stuckBy" required>
+                <option value="" selected></option>
+              </select>
+            </div>
+
+            <div>
+              <label for="cutBy">Cut by:</label>
+              <select id="cutBy" name="cutBy" required>
+                <option value="" selected></option>
+              </select>
+            </div>
+
+            <div>
+              <label for="trimmedBy">Trimmed by:</label>
+              <select id="trimmedBy" name="trimmedBy" required>
+                <option value="" selected></option>
+              </select>
+            </div>
+
+            <div>
+              <label for="propRoomLocationHelper">Prop Room Location Helper</label>
+              <select id="propRoomLocationHelper" name="propRoomLocationHelper">
+                <option value="" selected></option>
+              </select>
+            </div>
+
+            <div>
+              <label for="tableNum">Table #</label>
+              <input type="text" id="tableNum" name="tableNum">
+            </div>
+
+            <!-- Read-only preview of computed field -->
+            <div>
+              <label for="locationAdjusted">Location (adjusted)</label>
+              <input type="text" id="locationAdjusted" name="locationAdjusted" readonly>
+            </div>
+
+            <!-- === QUANTITY UI (by role) === -->
+
+            <!-- CLONER VIEW -->
+            <div id="grp_cloner_qty">
+              <label>Dome ratio <span style="color:#c00">*</span></label>
+              <div class="radio-group" role="radiogroup" aria-label="Dome ratio">
+                <div class="radio-label">
+                  <input type="radio" id="dr50" name="domeRatio" value="50" checked>
+                  <label for="dr50">50</label>
+                </div>
+                <div class="radio-label">
+                  <input type="radio" id="dr72" name="domeRatio" value="72">
+                  <label for="dr72">72</label>
+                </div>
+              </div>
+            </div>
+
+            <div id="grp_domes">
+              <label for="domes">Domes <span style="color:#c00">*</span></label>
+              <input type="number" id="domes" name="domes" min="0" step="1" inputmode="numeric">
+            </div>
+
+            <!-- CUTTER/TRIMMER VIEW -->
+            <div id="grp_cloneqty">
+              <label>Clone Quantity <span style="color:#c00">*</span></label>
+              <div class="radio-group" role="radiogroup" aria-label="Clone Quantity">
+                <div class="radio-label">
+                  <input type="radio" id="cq50" name="cloneQty" value="50" checked>
+                  <label for="cq50">50</label>
+                </div>
+                <div class="radio-label">
+                  <input type="radio" id="cq72" name="cloneQty" value="72">
+                  <label for="cq72">72</label>
+                </div>
+              </div>
+            </div>
+
+            <div id="grp_pitchers">
+              <label for="pitchers">Pitchers <span style="color:#c00">*</span></label>
+              <input type="number" id="pitchers" name="pitchers" min="0" step="1" inputmode="numeric">
+            </div>
+
+            <!-- Hidden totals (computed) -->
+            <input type="hidden" id="totalClones" name="totalClones">
+            <input type="hidden" id="totalTrims"  name="totalTrims">
+            <input type="hidden" id="totalCuts"   name="totalCuts">
+
+            <!-- Partials (Option A) -->
+            <div id="partialContainer">
+              <label for="partial">Partial</label>
+              <input id="partial" name="partial" type="number" inputmode="numeric" oninput="showNextPartial('partial')" />
+            </div>
+            <div id="partial2Container" class="hidden">
+              <label for="partial2">Partial 2</label>
+              <input id="partial2" name="partial2" type="number" inputmode="numeric" oninput="showNextPartial('partial2')" />
+            </div>
+            <div id="partial3Container" class="hidden">
+              <label for="partial3">Partial 3</label>
+              <input id="partial3" name="partial3" type="number" inputmode="numeric" oninput="showNextPartial('partial3')" />
+            </div>
+            <div id="partial4Container" class="hidden">
+              <label for="partial4">Partial 4</label>
+              <input id="partial4" name="partial4" type="number" inputmode="numeric" oninput="showNextPartial('partial4')" />
+            </div>
+            <div id="partial5Container" class="hidden">
+              <label for="partial5">Partial 5</label>
+              <input id="partial5" name="partial5" type="number" inputmode="numeric" />
+            </div>
+
+            <!-- Notes -->
+            <div>
+              <label for="notes">Notes</label>
+              <textarea id="notes" name="notes" rows="3" style="height:3.5em;"></textarea>
+            </div>
+
+            <div>
+              <button id="submitBtn" type="submit">Submit</button>
+              <button id="cancelEditBtn" type="button" class="hidden" onclick="cancelEdit()">Cancel Edit</button>
+            </div>
+          </form>
         </div>
+      </div>
     </div>
-    <div class="settings">
-        <div>
-            <label for="fieldSelect">Select Field to Update</label>
-            <select id="fieldSelect">
-                <option value="names">Names</option>
-                <option value="strain">Strain</option>
-            </select>
-        </div>
-        <div>
-            <label for="fieldValues">Enter Values (comma-separated or line-separated)</label>
-            <textarea id="fieldValues" placeholder="e.g. John Hughes, Ronald Teal or &#10;John Hughes&#10;Ronald Teal&#10;John Doe"></textarea>
-        </div>
-        <div>
-            <button type="button" onclick="updateField()">Update Field</button>
-        </div>
+
+    <div class="table-container">
+      <table id="dataTable" aria-label="Submitted rows">
+        <thead>
+          <tr id="headerRow">
+            <th>Action</th>
+            <th>Role</th>
+            <th>Common date</th>
+            <th>Cut date</th>
+            <th>Trim Date</th>
+            <th>Submitted by:</th>
+            <th>Strain</th>
+            <th>Pheno</th>
+            <th>Type</th>
+            <th>Cut Location</th>
+            <th>What are they for?</th>
+            <th>Mom ID?</th>
+            <th>What Shift?</th>
+            <th>Notes</th>
+            <th>Stuck by:</th>
+            <th>Cut by:</th>
+            <th>Trimmed by:</th>
+            <th>Prop Room Location Helper</th>
+            <th>Table #</th>
+            <th>Location (adjusted)</th>
+            <th>Total [Clones]</th>
+            <th>Total [Trims]</th>
+            <th>Total [Cuts]</th>
+            <th>Domes</th>
+            <th>Pitchers</th>
+            <th>Partial</th>
+            <th>Partial 2</th>
+            <th>Partial 3</th>
+            <th>Partial 4</th>
+            <th>Partial 5</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <div style="text-align:right; margin-top:10px; display:flex; gap:8px; justify-content:flex-end; align-items:center;">
+        <label class="inline"><input type="checkbox" id="clearAfterExport" checked /> Clear after export</label>
+        <button type="button" onclick="exportToCSV()">Export to Excel</button>
+      </div>
     </div>
+  </div>
+
+  <!-- CONFIG MODAL -->
+  <div id="configOverlay" class="hidden modal-overlay" role="dialog" aria-modal="true" aria-labelledby="configTitle">
+    <div class="modal-card">
+      <h2 id="configTitle" style="margin-top:0;">Configure Dropdown Lists</h2>
+      <p class="muted">Enter values comma-separated or line-separated. “N/A” stays first for Pheno and Type if present.</p>
+
+      <div class="modal-grid">
+        <label>Names
+          <textarea id="cfg_names" placeholder="John Doe, Jane Smith"></textarea>
+        </label>
+
+        <label>Strain
+          <textarea id="cfg_strain" placeholder="Strain A, Strain B"></textarea>
+        </label>
+
+        <label>Pheno
+          <textarea id="cfg_pheno" placeholder="N/A, 1, 2, …"></textarea>
+        </label>
+
+        <label>Type
+          <textarea id="cfg_type" placeholder="N/A, Hybrid, Indica, Sativa, Place Holder"></textarea>
+        </label>
+
+        <label>Cut Location
+          <textarea id="cfg_cutLocation" placeholder="Legacy, M1A, M1B, …"></textarea>
+        </label>
+
+        <label>Prop Room Location Helper
+          <textarea id="cfg_propHelper" placeholder="P1-T, P2-T"></textarea>
+        </label>
+      </div>
+
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;">
+        <button type="button" onclick="closeConfig()">Cancel</button>
+        <button type="button" onclick="saveConfig()">Save & Close</button>
+      </div>
+    </div>
+  </div>
 </div>
 
+<!-- SINGLE SCRIPT BLOCK -->
 <script>
-    function login() {
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-        if (password === "AmPED") {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('mainContent').style.display = 'block';
-            localStorage.setItem('username', username);
-        } else {
-            alert('Incorrect password. Please try again.');
-        }
+/* =======================
+   CONFIG & COLUMN SCHEMA
+   ======================= */
+const PASSWORD = "password";               // <-- set here
+const APP_KEY = "automation.offline";
+const TABLE_KEY = `${APP_KEY}.table`;
+const USER_KEY  = `${APP_KEY}.user`;
+
+const NAMES_KEY = `${APP_KEY}.names`;
+const STRAIN_KEY = `${APP_KEY}.strain`;
+const PHENO_KEY = `${APP_KEY}.pheno`;
+const TYPE_KEY = `${APP_KEY}.type`;
+const CUTLOC_KEY = `${APP_KEY}.cutLocation`;
+const PROPHELPER_KEY = `${APP_KEY}.propHelper`;
+
+/* =======================
+   DEFAULT FORM VALUES
+   ======================= */
+const DEFAULT_FORM_VALUES = {
+  type: "N/A",
+  pheno: "N/A",
+  momId: "N/A",
+  purpose: "Production",
+  domeRatio: "50",
+  cloneQty: "50",
+  notes: ""
+};
+
+// Apply defaults when the form is reset or initialized
+function applyDefaultFormValues(){
+  for (const [key, val] of Object.entries(DEFAULT_FORM_VALUES)) {
+    const el = document.getElementById(key);
+    if (el) {
+      if (el.tagName === "SELECT") {
+        const hasOption = Array.from(el.options).some(o => o.value === val);
+        if (hasOption) el.value = val;
+      } else if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
+        el.value = val;
+      }
+      continue;
     }
-
-    function updateField() {
-        const fieldSelect = document.getElementById('fieldSelect').value;
-        const fieldValues = document.getElementById('fieldValues').value.split(/,|\n/).map(value => value.trim()).filter(value => value);
-
-        if (fieldSelect === "names") {
-            const nameFields = ["submittedBy", "stuckBy", "cutBy", "trimmedBy"];
-            nameFields.forEach(field => {
-                const selectElement = document.getElementById(field);
-                selectElement.innerHTML = ''; // Clear existing options
-
-                const defaultOption = document.createElement('option');
-                defaultOption.value = '';
-                defaultOption.textContent = '';
-                defaultOption.selected = true;
-                selectElement.appendChild(defaultOption);
-
-                fieldValues.forEach(value => {
-                    const option = document.createElement('option');
-                    option.value = value;
-                    option.textContent = value;
-                    selectElement.appendChild(option);
-                });
-
-                // Set the value to empty string to clear the field
-                selectElement.value = '';
-            });
-        } else {
-            const selectElement = document.getElementById(fieldSelect);
-            selectElement.innerHTML = ''; // Clear existing options
-
-            const defaultOption = document.createElement('option');
-            defaultOption.value = '';
-            defaultOption.textContent = '';
-            defaultOption.selected = true;
-            selectElement.appendChild(defaultOption);
-
-            fieldValues.forEach(value => {
-                const option = document.createElement('option');
-                option.value = value;
-                option.textContent = value;
-                selectElement.appendChild(option);
-            });
-
-            // Set the value to empty string to clear the field
-            selectElement.value = '';
-        }
-
-        // Save to localStorage
-        localStorage.setItem(fieldSelect, JSON.stringify(fieldValues));
-
-        document.getElementById('fieldValues').value = ''; // Clear the input field
-        alert(`${fieldSelect} updated successfully!`);
+    const candidates = document.querySelectorAll(`input[name="${key}"]`);
+    if (candidates.length) {
+      const match = document.querySelector(`input[name="${key}"][value="${val}"]`);
+      if (match) match.checked = true;
     }
+  }
+}
 
-    function addToTable() {
-        const form = document.getElementById('mainForm');
-        const table = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
-        const newRow = table.insertRow();
-        
-        const deleteCell = newRow.insertCell();
-        deleteCell.innerHTML = '<span class="delete-btn" onclick="deleteRow(this)">🗑️</span>';
-        
-        const fields = [
-            'role', 'cutDate', 'trimDate', 'submittedBy', 'strain', 'pheno', 'cutLocation',
-            'purpose', 'momId', 'shift', 'stuckBy', 'cutBy', 'trimmedBy', 'propRoomLocation',
-            'domes', 'domeRatio', 'pitchers', 'partial', 'partial2', 'partial3', 'partial4', 'partial5', 'notes'
-        ];
-        
-        fields.forEach(field => {
-            const cell = newRow.insertCell();
-            const inputField = form.querySelector(`[name="${field}"]`);
-            cell.textContent = inputField ? inputField.value : '';
-        });
+/* =======================
+   DEFAULTS SEED (once)
+   ======================= */
+const DEFAULTS = {
+  pheno: [
+    "N/A","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15",
+    "16","17","18","19","20","21","26","30","31","40","44","153","339"
+  ],
+  type: ["N/A","Hybrid","Indica","Sativa","Place Holder"],
+  cutLocation: ["Legacy","M1A","M1B","M2A","M2B","M3A","M3B","V1","V2","V3","V4","V5","V6"],
+  propHelper: ["P1-T","P2-T"]
+};
 
-        form.reset();
-        resetSelectFields();
-        resetPartials();
+function seedDefaultsOnce(){
+  const STAMP = `${APP_KEY}.defaultsSeeded`;
+  if (localStorage.getItem(STAMP)) return;
+  localStorage.setItem(PHENO_KEY, JSON.stringify(DEFAULTS.pheno));
+  localStorage.setItem(TYPE_KEY, JSON.stringify(DEFAULTS.type));
+  localStorage.setItem(CUTLOC_KEY, JSON.stringify(DEFAULTS.cutLocation));
+  localStorage.setItem(PROPHELPER_KEY, JSON.stringify(DEFAULTS.propHelper));
+  localStorage.setItem(STAMP, "1");
+}
 
-        saveTableData(); // Save the table data to localStorage
+/* ========================
+   CONFIGURE MODAL LOGIC
+   ======================== */
+function openConfig(){
+  $('#cfg_names').value       = (JSON.parse(localStorage.getItem(NAMES_KEY)  || '[]')).join('\n');
+  $('#cfg_strain').value      = (JSON.parse(localStorage.getItem(STRAIN_KEY) || '[]')).join('\n');
+  $('#cfg_pheno').value       = getOrDefault(PHENO_KEY,      DEFAULTS.pheno).join('\n');
+  $('#cfg_type').value        = getOrDefault(TYPE_KEY,       DEFAULTS.type).join('\n');
+  $('#cfg_cutLocation').value = getOrDefault(CUTLOC_KEY,     DEFAULTS.cutLocation).join('\n');
+  $('#cfg_propHelper').value  = getOrDefault(PROPHELPER_KEY, DEFAULTS.propHelper).join('\n');
+
+  const ov = $('#configOverlay');
+  ov.classList.remove('hidden');
+  ov.style.display = 'flex';
+}
+function closeConfig(){
+  const ov = $('#configOverlay');
+  ov.classList.add('hidden');
+  ov.style.display = 'none';
+}
+function saveConfig(){
+  const namesIn       = uniquePreserveOrder(parseList($('#cfg_names').value));
+  const strainIn      = uniquePreserveOrder(parseList($('#cfg_strain').value));
+  let   phenoIn       = uniquePreserveOrder(parseList($('#cfg_pheno').value));
+  let   typeIn        = uniquePreserveOrder(parseList($('#cfg_type').value));
+  const cutLocIn      = uniquePreserveOrder(parseList($('#cfg_cutLocation').value));
+  const propHelperIn  = uniquePreserveOrder(parseList($('#cfg_propHelper').value));
+
+  const keepOr = (arr, def) => (arr.length ? arr : def);
+
+  const names       = keepOr(namesIn,  JSON.parse(localStorage.getItem(NAMES_KEY)  || '[]'));
+  const strain      = keepOr(strainIn, JSON.parse(localStorage.getItem(STRAIN_KEY) || '[]'));
+  let   pheno       = keepOr(phenoIn,  getOrDefault(PHENO_KEY, DEFAULTS.pheno));
+  let   type        = keepOr(typeIn,   getOrDefault(TYPE_KEY,  DEFAULTS.type));
+  const cutLocation = keepOr(cutLocIn, getOrDefault(CUTLOC_KEY, DEFAULTS.cutLocation));
+  const propHelper  = keepOr(propHelperIn, getOrDefault(PROPHELPER_KEY, DEFAULTS.propHelper));
+
+  // Keep "N/A" first if present
+  const pinFirst = (arr) => {
+    const idx = arr.findIndex(v => v.toUpperCase() === "N/A");
+    if (idx > 0) arr.splice(0,0, arr.splice(idx,1)[0]);
+  };
+  pinFirst(pheno);
+  pinFirst(type);
+
+  localStorage.setItem(NAMES_KEY, JSON.stringify(names));
+  localStorage.setItem(STRAIN_KEY, JSON.stringify(strain));
+  localStorage.setItem(PHENO_KEY, JSON.stringify(pheno));
+  localStorage.setItem(TYPE_KEY, JSON.stringify(type));
+  localStorage.setItem(CUTLOC_KEY, JSON.stringify(cutLocation));
+  localStorage.setItem(PROPHELPER_KEY, JSON.stringify(propHelper));
+
+  applyListToForm('names', names);
+  applyListToForm('strain', strain);
+  applyListToForm('pheno', pheno);
+  applyListToForm('type', type);
+  applyListToForm('cutLocation', cutLocation);
+  applyListToForm('propHelper', propHelper);
+
+  closeConfig();
+  computeLocationAdjustedPreview?.();
+}
+
+/* ===========================
+   PUSH LISTS INTO THE FORM
+   =========================== */
+function applyListToForm(kind, items){
+  const addOptions = (selectEl, values) => {
+    if(!selectEl) return;
+    selectEl.innerHTML = '';
+    const def = document.createElement('option');
+    def.value = ''; def.textContent=''; def.selected = true;
+    selectEl.appendChild(def);
+    values.forEach(v=>{
+      const opt = document.createElement('option');
+      opt.value = v; opt.textContent = v;
+      selectEl.appendChild(opt);
+    });
+  };
+
+  if(kind === 'names'){
+    ["submittedBy","stuckBy","cutBy","trimmedBy"].forEach(id=>{
+      addOptions(document.getElementById(id), items);
+    });
+    return;
+  }
+  if(kind === 'strain'){ addOptions(document.getElementById('strain'), items); return; }
+  if(kind === 'pheno'){ addOptions(document.getElementById('pheno'), items); return; }
+  if(kind === 'type'){ addOptions(document.getElementById('type'), items); return; }
+  if(kind === 'cutLocation'){ addOptions(document.getElementById('cutLocation'), items); return; }
+  if(kind === 'propHelper'){ addOptions(document.getElementById('propRoomLocationHelper'), items); return; }
+}
+
+/* =================================
+   INITIAL FORM LIST POPULATION
+   ================================= */
+function loadSettingsIntoFormLists(){
+  const names       = JSON.parse(localStorage.getItem(NAMES_KEY)  || '[]');
+  const strain      = JSON.parse(localStorage.getItem(STRAIN_KEY) || '[]');
+
+  const pheno       = getOrDefault(PHENO_KEY,      DEFAULTS.pheno);
+  const type        = getOrDefault(TYPE_KEY,       DEFAULTS.type);
+  const cutLocation = getOrDefault(CUTLOC_KEY,     DEFAULTS.cutLocation);
+  const propHelper  = getOrDefault(PROPHELPER_KEY, DEFAULTS.propHelper);
+
+  if(names.length)  applyListToForm('names', names);
+  if(strain.length) applyListToForm('strain', strain);
+  applyListToForm('pheno', pheno);
+  applyListToForm('type', type);
+  applyListToForm('cutLocation', cutLocation);
+  applyListToForm('propHelper', propHelper);
+}
+
+/* =======================
+   LOGIN & INIT
+   ======================= */
+function login(){
+  try {
+    const username = (document.getElementById("username")?.value || "").trim();
+    const pwInput  = (document.getElementById("password")?.value || "").trim();
+    const expected = (typeof PASSWORD === "string" && PASSWORD) ? PASSWORD : "";
+
+    if (pwInput === expected) {
+      sessionStorage.setItem(USER_KEY, username || "user");
+      document.getElementById("loginScreen").style.display = "none";
+      document.getElementById("mainContent").style.display = "block";
+      initializeApp();
+    } else {
+      alert("Incorrect password.");
     }
+  } catch (err) {
+    console.error("Login error:", err);
+    alert("Something went wrong during login. Check the console for details.");
+  }
+}
 
-    function deleteRow(btn) {
-        const row = btn.parentNode.parentNode;
-        row.parentNode.removeChild(row);
-        saveTableData();
+function logout(){
+  sessionStorage.removeItem(USER_KEY);
+  document.getElementById("loginScreen").style.display = "block";
+  document.getElementById("mainContent").style.display = "none";
+  document.getElementById("loginForm")?.reset();
+}
+
+// Enter key submits login when on login screen
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && document.getElementById("loginScreen").style.display !== "none") {
+    e.preventDefault();
+    login();
+  }
+});
+
+// Require login every load (session-only memory)
+document.addEventListener("DOMContentLoaded", () => {
+  const user = sessionStorage.getItem(USER_KEY);
+  if (user) {
+    document.getElementById("loginScreen").style.display = "none";
+    document.getElementById("mainContent").style.display = "block";
+    try { initializeApp(); } catch (e) { console.error("Init error:", e); }
+  } else {
+    document.getElementById("loginScreen").style.display = "block";
+    document.getElementById("mainContent").style.display = "none";
+  }
+});
+
+/* =======================
+   APP INIT
+   ======================= */
+function initializeApp(){
+  seedDefaultsOnce();
+  loadSettingsIntoFormLists();
+  loadTableFromStorage();
+
+  // computed field bindings
+  ["#cutDate","#trimDate"].forEach(sel=>{
+    $(sel).addEventListener('input', computeCommonDate);
+    $(sel).addEventListener('change', computeCommonDate);
+  });
+  ["#role","#propRoomLocationHelper","#tableNum","#cutLocation"].forEach(sel=>{
+    $(sel).addEventListener('input', computeLocationAdjustedPreview);
+    $(sel).addEventListener('change', computeLocationAdjustedPreview);
+  });
+
+  // totals bindings
+  ["#domes","#pitchers"].forEach(sel=>{
+    $(sel).addEventListener('input', computeTotals);
+    $(sel).addEventListener('change', computeTotals);
+  });
+  document.querySelectorAll('input[name="domeRatio"]').forEach(r=>{
+    r.addEventListener('input', computeTotals); r.addEventListener('change', computeTotals);
+  });
+  document.querySelectorAll('input[name="cloneQty"]').forEach(r=>{
+    r.addEventListener('input', computeTotals); r.addEventListener('change', computeTotals);
+  });
+
+  // role visibility
+  document.getElementById("role").addEventListener("change", onRoleChange);
+  onRoleChange();
+
+  // initial compute + defaults after lists are ready
+  computeCommonDate();
+  computeLocationAdjustedPreview();
+  computeTotals();
+  applyDefaultFormValues(); // <-- load defaults immediately (Type/Pheno/Mom ID etc.)
+}
+
+/* ============================
+   ROLE VISIBILITY RULES (hide)
+   ============================ */
+const BASE_REQUIRED = new Set([
+  "cutDate","trimDate","submittedBy","strain","pheno","cutLocation",
+  "momId","shift","stuckBy","cutBy","trimmedBy","domes","pitchers"
+]);
+
+function setVisibility(id, show){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const wrapper = el.closest("div");
+  if(wrapper) wrapper.style.display = show ? "" : "none";
+  if(!show){
+    el.required = false;
+    el.value = "";
+  } else if (BASE_REQUIRED.has(id)){
+    el.required = true;
+  }
+}
+
+function setGroup(id, show, makeRequiredIds=[]){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.style.display = show ? "" : "none";
+  el.querySelectorAll("input, select, textarea").forEach(inp=>{
+    if(!show){
+      inp.required = false;
+      if(inp.type === "radio") inp.checked = false;
+      else inp.value = "";
+    } else {
+      inp.required = makeRequiredIds.includes(inp.id);
     }
+  });
+}
 
-    function resetSelectFields() {
-        const selectFields = document.querySelectorAll('select');
-        selectFields.forEach(select => {
-            select.value = "";
-        });
+function onRoleChange(){
+  const role = val("#role");
+
+  // show all, then hide per role
+  ["cutDate","trimDate","stuckBy","cutBy","trimmedBy"].forEach(id=>setVisibility(id,true));
+
+  if(role === "Cloner"){
+    setVisibility("trimDate", false);
+    setVisibility("cutBy", false);
+    setVisibility("trimmedBy", false);
+
+    setGroup("grp_cloner_qty", true,  ["dr50"]);
+    setGroup("grp_domes",       true,  ["domes"]);
+    setGroup("grp_cloneqty",    false);
+    setGroup("grp_pitchers",    false);
+  } else if(role === "Cutter"){
+    setVisibility("trimDate", false);
+    setVisibility("stuckBy", false);
+    setVisibility("trimmedBy", false);
+
+    setGroup("grp_cloner_qty", false);
+    setGroup("grp_domes",      false);
+    setGroup("grp_cloneqty",   true,  ["cq50"]);
+    setGroup("grp_pitchers",   true,  ["pitchers"]);
+  } else if(role === "Trimmer"){
+    setVisibility("cutDate", false);
+    setVisibility("stuckBy", false);
+    setVisibility("cutBy", false);
+
+    setGroup("grp_cloner_qty", false);
+    setGroup("grp_domes",      false);
+    setGroup("grp_cloneqty",   true,  ["cq50"]);
+    setGroup("grp_pitchers",   true,  ["pitchers"]);
+  } else {
+    setGroup("grp_cloner_qty", false);
+    setGroup("grp_domes",      false);
+    setGroup("grp_cloneqty",   false);
+    setGroup("grp_pitchers",   false);
+  }
+
+  computeCommonDate();
+  computeLocationAdjustedPreview();
+  computeTotals();
+}
+
+/* ============================
+   COMPUTED FIELD LOGIC
+   ============================ */
+function computeCommonDate(){
+  const cut  = val("#cutDate");
+  const trim = val("#trimDate");
+  $("#commonDate").value = cut || trim || "";
+}
+
+// Compute Location (adjusted) for ALL roles
+function computeLocationAdjustedPreview(){
+  const helper = val("#propRoomLocationHelper");
+  const table  = val("#tableNum");
+  const cutLoc = val("#cutLocation");
+  const hasAll = helper && table && cutLoc;
+  $("#locationAdjusted").value = hasAll ? `${helper}${table}-${cutLoc}` : "";
+}
+
+/* ============================
+   TOTALS (computed, hidden)
+   ============================ */
+function getChecked(name){
+  const el = document.querySelector(`input[name="${name}"]:checked`);
+  return el ? +el.value : 0;
+}
+function asInt(v){ const n = parseInt(v,10); return Number.isFinite(n) && n >= 0 ? n : 0; }
+
+function computeTotals(){
+  const role = val("#role");
+  const domes    = asInt(val("#domes"));
+  const pitchers = asInt(val("#pitchers"));
+  const domeRatio = getChecked("domeRatio");
+  const cloneQty  = getChecked("cloneQty");
+
+  let totalClones = "";
+  let totalTrims  = "";
+  let totalCuts   = "";
+
+  if(role === "Cloner"){
+    totalClones = (domes > 0 && domeRatio > 0) ? String(domes * domeRatio) : "";
+  } else if (role === "Cutter"){
+    totalCuts = (cloneQty > 0 && pitchers > 0) ? String(cloneQty * pitchers) : "";
+  } else if (role === "Trimmer"){
+    totalTrims = (cloneQty > 0 && pitchers > 0) ? String(cloneQty * pitchers) : "";
+  }
+
+  $("#totalClones").value = totalClones;
+  $("#totalTrims").value  = totalTrims;
+  $("#totalCuts").value   = totalCuts;
+}
+
+/* ============================
+   ADD / DELETE / SAVE ROWS
+   ============================ */
+function submitForm(){
+  computeCommonDate();
+  computeLocationAdjustedPreview();
+  computeTotals();
+
+  const tbody = $("#dataTable tbody");
+  const editIdx = parseInt($("#editingRowIndex").value, 10);
+
+  if (Number.isInteger(editIdx) && editIdx >= 0) {
+    const tr = tbody.rows[editIdx];
+    if (!tr) return;
+    COLUMNS.forEach((col, i) => { tr.cells[i+1].textContent = col.getter(); });
+  } else {
+    const tr = tbody.insertRow();
+    const act = tr.insertCell();
+    act.innerHTML =
+      `<span class="action-btn edit-btn" title="Edit" onclick="startEdit(this)">✏️</span>`+
+      `<span class="action-btn delete-btn" title="Delete" onclick="deleteRow(this)">🗑️</span>`;
+    for (const col of COLUMNS){
+      const c = tr.insertCell();
+      c.textContent = col.getter();
     }
+  }
 
-    function showNextPartial(partialId) {
-        const nextPartial = {
-            partial: 'partial2Container',
-            partial2: 'partial3Container',
-            partial3: 'partial4Container',
-            partial4: 'partial5Container'
-        }[partialId];
+  saveTableToStorage();
+  $("#mainForm").reset();
+  $("#editingRowIndex").value = -1;
+  $("#submitBtn").textContent = "Submit";
+  $("#cancelEditBtn").classList.add("hidden");
 
-        if (nextPartial) {
-            document.getElementById(nextPartial).classList.remove('hidden');
-        }
+  onRoleChange();
+  computeCommonDate();
+  computeLocationAdjustedPreview();
+  computeTotals();
+  resetPartials();
+  refreshPartialColumnsVisibility();
+  applyDefaultFormValues(); // reapply defaults after reset
+}
+
+function deleteRow(btn){
+  const tr = btn.closest("tr");
+  if (!tr) return;
+  tr.remove();
+  saveTableToStorage();
+  refreshPartialColumnsVisibility();
+}
+
+/* ============================
+   STORAGE HANDLING
+   ============================ */
+function saveTableToStorage(){
+  const rows = [...$("#dataTable tbody").rows].map(r=>{
+    return [...r.cells].slice(1).map(td=>td.textContent);
+  });
+  localStorage.setItem(TABLE_KEY, JSON.stringify(rows));
+}
+
+function startEdit(btn){
+  const tr = btn.closest("tr");
+  const idx = tr.rowIndex - 1; // minus header
+  $("#editingRowIndex").value = idx;
+
+  const cells = Array.from(tr.cells).slice(1); // skip Action cell
+  COLUMNS.forEach((col, i) => populateFieldForEdit(col, cells[i].textContent));
+
+  $("#submitBtn").textContent = "Save Changes";
+  $("#cancelEditBtn").classList.remove("hidden");
+
+  ["partial2","partial3","partial4","partial5"].forEach(id=>{
+    const el = document.getElementById(id);
+    if (el && el.value) {
+      const wrap = document.getElementById(id + "Container");
+      if (wrap) wrap.classList.remove("hidden");
     }
+  });
 
-    function resetPartials() {
-        const partials = ['partial2Container', 'partial3Container', 'partial4Container', 'partial5Container'];
-        partials.forEach(partial => {
-            document.getElementById(partial).classList.add('hidden');
-            document.getElementById(partial).querySelector('input').value = '';
-        });
-    }
+  onRoleChange();
+  computeCommonDate();
+  computeLocationAdjustedPreview();
+  computeTotals();
 
-    document.getElementById('role').addEventListener('change', function() {
-        const role = this.value;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
 
-        const trimDate = document.getElementById('trimDate');
-        const cutBy = document.getElementById('cutBy');
-        const trimmedBy = document.getElementById('trimmedBy');
-        const pitchers = document.getElementById('pitchers');
-        const stuckBy = document.getElementById('stuckBy');
-        const cutDate = document.getElementById('cutDate');
-        const domes = document.getElementById('domes');
+function populateFieldForEdit(col, value){
+  const id = col.id;
+  switch(id){
+    case "purpose":
+      document.querySelectorAll('input[name="purpose"]').forEach(r => r.checked = (r.value === value));
+      break;
+    case "domes":
+    case "pitchers":
+    case "tableNum":
+    case "momId":
+    case "type":
+    case "notes":
+    case "commonDate":
+    case "cutDate":
+    case "trimDate":
+    case "locationAdjusted":
+    case "partial":
+    case "partial2":
+    case "partial3":
+    case "partial4":
+    case "partial5":
+      const el = document.getElementById(id); if (el) el.value = value || "";
+      break;
+    default:
+      const sel = document.getElementById(id);
+      if (sel) sel.value = value || "";
+  }
+}
 
-        // Enable all fields by default
-        const fields = [trimDate, cutBy, trimmedBy, pitchers, stuckBy, cutDate, domes];
-        fields.forEach(field => field.disabled = false);
+function cancelEdit(){
+  $("#mainForm").reset();
+  $("#editingRowIndex").value = -1;
+  $("#submitBtn").textContent = "Submit";
+  $("#cancelEditBtn").classList.add("hidden");
+  onRoleChange();
+  computeCommonDate();
+  computeLocationAdjustedPreview();
+  computeTotals();
+  resetPartials();
+  applyDefaultFormValues(); // reapply defaults after cancel
+}
 
-        // Disable fields based on the selected role
-        if (role === 'Cloner') {
-            [trimDate, cutBy, trimmedBy, pitchers].forEach(field => field.disabled = true);
-        } else if (role === 'Cutter') {
-            [trimDate, stuckBy, trimmedBy, pitchers].forEach(field => field.disabled = true);
-        } else if (role === 'Trimmer') {
-            [cutDate, stuckBy, cutBy, domes].forEach(field => field.disabled = true);
-        }
+/* ============================
+   PARTIAL FIELD VISIBILITY
+   ============================ */
+function showNextPartial(id){
+  const next = {
+    partial:"partial2Container",
+    partial2:"partial3Container",
+    partial3:"partial4Container",
+    partial4:"partial5Container"
+  }[id];
+  if(!next) return;
+  const el = document.getElementById(next);
+  if(el) el.classList.remove("hidden");
+}
+
+function resetPartials(){
+  ["partial2Container","partial3Container","partial4Container","partial5Container"]
+    .forEach(id=>{
+      const c = document.getElementById(id);
+      if(!c) return;
+      c.classList.add("hidden");
+      const inp=c.querySelector("input");
+      if(inp) inp.value="";
+    });
+}
+
+/* ============================
+   TABLE (re)DRAW SUPPORT
+   ============================ */
+function refreshPartialColumnsVisibility(){
+  const headersToCheck = ["Partial","Partial 2","Partial 3","Partial 4","Partial 5"];
+  const headerRow = document.getElementById("headerRow");
+  const ths = Array.from(headerRow.cells);
+
+  const idxMap = {};
+  ths.forEach((th, i) => { idxMap[th.textContent.trim()] = i; });
+
+  const tbody = document.querySelector("#dataTable tbody");
+  const rows = Array.from(tbody.rows);
+
+  headersToCheck.forEach(hdr => {
+    const colIdx = idxMap[hdr];
+    if (colIdx == null) return;
+
+    const anyValue = rows.some(r => {
+      const cell = r.cells[colIdx];
+      return cell && cell.textContent.trim() !== "";
     });
 
-    document.addEventListener('DOMContentLoaded', function() {
-        loadSettings();
-        loadTableData();
-        if (localStorage.getItem('username')) {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('mainContent').style.display = 'block';
-        } else {
-            document.getElementById('loginScreen').style.display = 'block';
-            document.getElementById('mainContent').style.display = 'none';
-        }
-    });
+    ths[colIdx].style.display = anyValue ? "" : "none";
+    rows.forEach(r => { if (r.cells[colIdx]) r.cells[colIdx].style.display = anyValue ? "" : "none"; });
+  });
+}
 
-    function loadSettings() {
-        const fieldSelect = document.getElementById('fieldSelect').value;
-        const savedNames = localStorage.getItem('names');
-        const savedStrains = localStorage.getItem('strain');
+function loadTableFromStorage(){
+  const tbody = $("#dataTable tbody");
+  tbody.innerHTML = "";
+  const rows = JSON.parse(localStorage.getItem(TABLE_KEY) || "[]");
 
-        if (savedNames) {
-            const nameFields = ["submittedBy", "stuckBy", "cutBy", "trimmedBy"];
-            const fieldValues = JSON.parse(savedNames);
+  for (const data of rows){
+    const tr = tbody.insertRow();
+    const act = tr.insertCell();
+    act.innerHTML =
+      `<span class="action-btn edit-btn" title="Edit" onclick="startEdit(this)">✏️</span>` +
+      `<span class="action-btn delete-btn" title="Delete" onclick="deleteRow(this)">🗑️</span>`;
 
-            nameFields.forEach(field => {
-                const selectElement = document.getElementById(field);
-                selectElement.innerHTML = ''; // Clear existing options
-
-                const defaultOption = document.createElement('option');
-                defaultOption.value = '';
-                defaultOption.textContent = '';
-                defaultOption.selected = true;
-                selectElement.appendChild(defaultOption);
-
-                fieldValues.forEach(value => {
-                    const option = document.createElement('option');
-                    option.value = value;
-                    option.textContent = value;
-                    selectElement.appendChild(option);
-                });
-
-                // Set the value to empty string to clear the field
-                selectElement.value = '';
-            });
-        }
-
-        if (savedStrains) {
-            const selectElement = document.getElementById('strain');
-            const fieldValues = JSON.parse(savedStrains);
-            selectElement.innerHTML = ''; // Clear existing options
-
-            const defaultOption = document.createElement('option');
-            defaultOption.value = '';
-            defaultOption.textContent = '';
-            defaultOption.selected = true;
-            selectElement.appendChild(defaultOption);
-
-            fieldValues.forEach(value => {
-                const option = document.createElement('option');
-                option.value = value;
-                option.textContent = value;
-                selectElement.appendChild(option);
-            });
-
-            // Set the value to empty string to clear the field
-            selectElement.value = '';
-        }
+    for (const v of data){
+      const c = tr.insertCell();
+      c.textContent = v;
     }
+  }
 
-    function saveTableData() {
-        const table = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
-        const rows = Array.from(table.rows);
-        const tableData = rows.map(row => {
-            return Array.from(row.cells).slice(1).map(cell => cell.textContent); // Exclude the first cell (trash icon)
-        });
-        localStorage.setItem('tableData', JSON.stringify(tableData));
-    }
+  refreshPartialColumnsVisibility();
+}
 
-    function loadTableData() {
-        const table = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
-        const tableData = JSON.parse(localStorage.getItem('tableData') || '[]');
-        tableData.forEach(rowData => {
-            const newRow = table.insertRow();
-            const deleteCell = newRow.insertCell();
-            deleteCell.innerHTML = '<span class="delete-btn" onclick="deleteRow(this)">🗑️</span>';
-            rowData.forEach(cellData => {
-                const cell = newRow.insertCell();
-                cell.textContent = cellData;
-            });
-        });
-    }
+/* ============================
+   EXPORT
+   ============================ */
+function exportToCSV(){
+  const rows = JSON.parse(localStorage.getItem(TABLE_KEY)||"[]");
+  if(!rows.length){ alert("No data to export."); return; }
 
-    function exportToCSV() {
-        const tableData = JSON.parse(localStorage.getItem('tableData') || '[]');
-        if (tableData.length === 0) {
-            alert('No data to export.');
-            return;
-        }
+  const headers = COLUMNS.map(c=>c.header);
+  const csv = [
+    headers.map(h=>csvEscape(h)).join(","),
+    ...rows.map(r=>r.map(v=>csvEscape(v)).join(","))
+  ].join("\n");
 
-        const headers = [
-            'Role', 'Cut Date', 'Trim Date', 'Submitted by', 'Strain', 'Pheno', 'Cut Location',
-            'Purpose', 'Mom ID', 'Shift', 'Stuck by', 'Cut by', 'Trimmed by', 'Prop Room Location',
-            'Domes', 'Dome Ratio', 'Pitchers', 'Partial', 'Partial 2', 'Partial 3', 'Partial 4', 'Partial 5', 'Notes'
-        ];
+  const user = sessionStorage.getItem(USER_KEY) || "user";
+  const now = new Date();
+  const name = `${user}_${now.toISOString().replace(/[:T]/g,"-").split(".")[0]}.csv`;
 
-        const csvContent = [
-            headers.join(','), // Add the headers
-            ...tableData.map(row => row.map(cell => `"${cell}"`).join(',')) // Add the rows
-        ].join('\n');
+  const blob = new Blob([csv],{type:"text/csv;charset=utf-8;"});
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = name;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 
-        // Get username from localStorage
-        const username = localStorage.getItem('username') || 'user';
+  if($("#clearAfterExport")?.checked){
+    localStorage.removeItem(TABLE_KEY);
+    $("#dataTable tbody").innerHTML="";
+    refreshPartialColumnsVisibility();
+  }
+}
 
-        // Get current date and time
-        const now = new Date();
-        const formattedDate = now.toISOString().split('T')[0];
-        const formattedTime = now.toTimeString().split(' ')[0].replace(/:/g, '-');
+function csvEscape(v){
+  if(v == null) v = "";
+  v = String(v);
+  if(/[",\n]/.test(v)){ return `"${v.replace(/"/g,'""')}"`; }
+  return v;
+}
 
-        // Create the file name
-        const fileName = `${username}_${formattedDate}_${formattedTime}.csv`;
-
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', fileName);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        // Clear the data table after download
-        clearTableData();
-    }
-
-    function clearTableData() {
-        const table = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
-        while (table.firstChild) {
-            table.removeChild(table.firstChild);
-        }
-        localStorage.removeItem('tableData');
-    }
+/* ==============
+   SMALL HELPERS
+   ============== */
+function $(sel){ return document.querySelector(sel); }
+function val(sel){ const el = $(sel); return el ? (el.value ?? "") : ""; }
+function numericOrEmpty(sel){
+  const el = $(sel);
+  if(!el) return "";
+  const v = (el.value ?? "").trim();
+  return v === "" ? "" : String(Math.max(0, +v|0));
+}
+function checkedValue(name){
+  const el = document.querySelector(`input[name="${name}"]:checked`);
+  return el ? el.value : "";
+}
+function uniquePreserveOrder(arr){
+  const seen = new Set(), out=[];
+  for(const v of arr){ if(!seen.has(v)){ seen.add(v); out.push(v); } }
+  return out;
+}
+function parseList(text){
+  return text.split(/,|\n/).map(s=>s.trim()).filter(Boolean);
+}
+function isNonEmptyArray(v){ return Array.isArray(v) && v.length > 0; }
+function getOrDefault(key, fallback){
+  try {
+    const parsed = JSON.parse(localStorage.getItem(key) || 'null');
+    return isNonEmptyArray(parsed) ? parsed : fallback;
+  } catch { return fallback; }
+}
 </script>
-
 </body>
 </html>
-
-
-
-
