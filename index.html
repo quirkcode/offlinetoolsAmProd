@@ -410,6 +410,41 @@ const DEFAULT_FORM_VALUES = {
   cloneQty: "50",
   notes: ""
 };
+/* =======================
+   TABLE COLUMN SCHEMA
+   (order must match <thead>)
+   ======================= */
+const COLUMNS = [
+  { id: "role",                       header: "Role",                         getter: () => val("#role") },
+  { id: "commonDate",                 header: "Common date",                  getter: () => val("#commonDate") },
+  { id: "cutDate",                    header: "Cut date",                     getter: () => val("#cutDate") },
+  { id: "trimDate",                   header: "Trim Date",                    getter: () => val("#trimDate") },
+  { id: "submittedBy",                header: "Submitted by:",                getter: () => val("#submittedBy") },
+  { id: "strain",                     header: "Strain",                       getter: () => val("#strain") },
+  { id: "pheno",                      header: "Pheno",                        getter: () => val("#pheno") },
+  { id: "type",                       header: "Type",                         getter: () => val("#type") },
+  { id: "cutLocation",                header: "Cut Location",                 getter: () => val("#cutLocation") },
+  { id: "purpose",                    header: "What are they for?",           getter: () => checkedValue("purpose") },
+  { id: "momId",                      header: "Mom ID?",                      getter: () => val("#momId") },
+  { id: "shift",                      header: "What Shift?",                  getter: () => val("#shift") },
+  { id: "notes",                      header: "Notes",                         getter: () => val("#notes") },
+  { id: "stuckBy",                    header: "Stuck by:",                    getter: () => val("#stuckBy") },
+  { id: "cutBy",                      header: "Cut by:",                      getter: () => val("#cutBy") },
+  { id: "trimmedBy",                  header: "Trimmed by:",                  getter: () => val("#trimmedBy") },
+  { id: "propRoomLocationHelper",     header: "Prop Room Location Helper",    getter: () => val("#propRoomLocationHelper") },
+  { id: "tableNum",                   header: "Table #",                      getter: () => val("#tableNum") },
+  { id: "locationAdjusted",           header: "Location (adjusted)",          getter: () => val("#locationAdjusted") },
+  { id: "totalClones",                header: "Total [Clones]",               getter: () => val("#totalClones") },
+  { id: "totalTrims",                 header: "Total [Trims]",                getter: () => val("#totalTrims") },
+  { id: "totalCuts",                  header: "Total [Cuts]",                 getter: () => val("#totalCuts") },
+  { id: "domes",                      header: "Domes",                        getter: () => numericOrEmpty("#domes") },
+  { id: "pitchers",                   header: "Pitchers",                     getter: () => numericOrEmpty("#pitchers") },
+  { id: "partial",                    header: "Partial",                      getter: () => val("#partial") },
+  { id: "partial2",                   header: "Partial 2",                    getter: () => val("#partial2") },
+  { id: "partial3",                   header: "Partial 3",                    getter: () => val("#partial3") },
+  { id: "partial4",                   header: "Partial 4",                    getter: () => val("#partial4") },
+  { id: "partial5",                   header: "Partial 5",                    getter: () => val("#partial5") },
+];
 
 // Apply defaults when the form is reset or initialized
 function applyDefaultFormValues(){
